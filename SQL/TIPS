@@ -1,0 +1,10 @@
+--値のカウント
+select 
+	_columnName_,
+	count(*)
+from 
+	train
+GROUP BY
+	_columnName_;
+
+
