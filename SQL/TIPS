@@ -8,3 +8,4 @@ GROUP BY
 	_columnName_;
 
 
+SELECT column_name FROM information_schema.columns WHERE table_name = 'execdata_train' ORDER BY ordinal_position

@@ -9,7 +9,5 @@ ALTER TABLE test ADD CONSTRAINT test_pkey PRIMARY KEY(id);
 
 \copy test(id,lobby_mode, mode, stage, A1_weapon, A1_rank, A1_level, A2_weapon, A2_rank, A2_level,A3_weapon, A3_rank, A3_level, A4_weapon, A4_rank, A4_level,B1_weapon, B1_rank, B1_level, B2_weapon, B2_rank, B2_level,B3_weapon, B3_rank, B3_level, B4_weapon, B4_rank, B4_level, yyyymmdd, time, dateDelta, hour) from '/home/tidal/ML_Data/Splatoon/input/testDB.csv' with csv header
 
---欠損値補完
---int値は-1
---文字列は'na'
+
 
