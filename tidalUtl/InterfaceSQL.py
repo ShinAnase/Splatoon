@@ -79,6 +79,8 @@ def exchangeExecData(dbname, tableName, df):
             cur.execute(Query)
     
     #列挿げ替え用のquery作成
+    
+    return
 
 
 
@@ -91,10 +93,6 @@ def updateExecData(dbname, tableName, updDf, pkeyDf):
     pkeyClmnNns = pkeyDf.columns
     
     #指定列のUpdate実行
-    with psycopg2.connect("host=localhost port=5432 dbname=" + dbname + " user=tidal password=tidalryoku") as conn:
-        with conn.cursor() as cur:
-            
-            
-
-            
-                
+    #with psycopg2.connect("host=localhost port=5432 dbname=" + dbname + " user=tidal password=tidalryoku") as conn:
+    #    with conn.cursor() as cur:
+        
