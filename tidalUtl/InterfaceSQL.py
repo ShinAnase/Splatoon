@@ -1,5 +1,6 @@
 import psycopg2
 import pandas as pd
+from tqdm import tqdm
 
 #ExecDataの作成
 #Input：DB名
@@ -12,7 +13,20 @@ def createExecData(dbname):
     
     print("DONE.")
 
+
+
+#ExecData削除
+#Input：DB名
+#Output：なし
+def DeleteExecData(dbname):
+    with psycopg2.connect("host=localhost port=5432 dbname=" + dbname + " user=tidal password=tidalryoku") as conn:
+        with conn.cursor() as cur:
+            cur.execute('DROP TABLE execdata_train, execdata_test;')
     
+    print("DONE.")
+
+
+
 #列名の配列抽出
 #Input：DB名、テーブル名
 #Output：列名(dataframe)
@@ -27,10 +41,11 @@ def readColumns(dbname, tablename):
     return df_columns
 
 
-#ExecDataの読み込み
+
+#DataTableの読み込み
 #Input：DB名、テーブル名、抽出するcolumn名(指定しなければ前列を抽出する)
 #Output：指定した列のテーブル(dataframe)
-def selectExecData(dbname, tableName, clmns = None):
+def selectDataTable(dbname, tableName, clmns = None):
     with psycopg2.connect("host=localhost port=5432 dbname=" + dbname + " user=tidal password=tidalryoku") as conn:
         with conn.cursor() as cur:
             if clmns is None:
@@ -58,6 +73,8 @@ def selectExecData(dbname, tableName, clmns = None):
     return df
 
 
+
+###　頓挫(updateの方針を変えたため)：列削除で使えそうなので残しておく ###
 #指定列のUpdate(列ごと挿げ替え)
 #Input：DB名、テーブル名、挿げ替えるtable(dataframe)
 #Output：なし
@@ -84,15 +101,44 @@ def exchangeExecData(dbname, tableName, df):
 
 
 
+
 #指定列のUpdate
 #Input：DB名、テーブル名、更新するtable(dataframe)、主キーとなるtable(dataframe)
 #Output：なし
-def updateExecData(dbname, tableName, updDf, pkeyDf):
-    #列名取得
-    updClmnNns = updDf.columns
-    pkeyClmnNns = pkeyDf.columns
+def updateFeatures(dbname, tableName, updDf, pkeyDf):
+    #queryの枕詞
+    iniQrySnpt = "update " + tableName + " set "
     
     #指定列のUpdate実行
-    #with psycopg2.connect("host=localhost port=5432 dbname=" + dbname + " user=tidal password=tidalryoku") as conn:
-    #    with conn.cursor() as cur:
-        
+    with psycopg2.connect("host=localhost port=5432 dbname=" + dbname + " user=tidal password=tidalryoku") as conn:
+        with conn.cursor() as cur:
+            for recNum in tqdm(range(pkeyDf.shape[0])):
+                #updateするクエリ
+                updQrySnpt = ""
+                for clmnNm in updDf:
+                    updQrySnpt = updQrySnpt + clmnNm + "='" + str(updDf[clmnNm][recNum]) +"', "
+                updQrySnpt = updQrySnpt[:-2] + " "
+                #条件クエリ
+                whrQrySnpt = "where "
+                for clmnNm in pkeyDf:
+                    whrQrySnpt = whrQrySnpt + clmnNm + "='" + str(pkeyDf[clmnNm][recNum]) + "' and "
+                whrQrySnpt = whrQrySnpt[:-5] + ";"
+                #query結合
+                execQry = iniQrySnpt + updQrySnpt + whrQrySnpt
+                #query実行
+                cur.execute(execQry)
+    #print(execQry)
+    print("Done.")
+
+
+
+#指定列のUpdate
+#Input：DB名、テーブル名、追加するtable(dataframe)、主キーとなるtable(dataframe)
+#Output：なし
+#以下のルールで追加列の型付けを行う。
+#  bool -> smallint: 0 or 1
+#  object -> varchar[Max値]
+#  intを含む -> int8
+#  float -> float8
+def addColumns(dbname, tableName, addDf, pkeyDf):
+    

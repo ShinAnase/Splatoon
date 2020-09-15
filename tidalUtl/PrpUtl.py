@@ -24,6 +24,7 @@ def FillnaAndInsertIsnan(DataFrame, ColsAndFillVals):
         #Insert用の欠損値の位置を示すbool列
         if dfIsNan is None:
             dfIsNan = pd.DataFrame(IsnanSeries,columns=[IsnanSeries.name])
+            dfIsNan = dfIsNan.rename(columns={IsnanSeries.name: IsnanSeries.name + "_isnan"})
         else:
             dfIsNan.insert(len(dfIsNan.columns), col + "_isnan", IsnanSeries)
         
