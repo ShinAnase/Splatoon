@@ -132,13 +132,5 @@ def updateFeatures(dbname, tableName, updDf, pkeyDf):
 
 
 
-#指定列のUpdate
-#Input：DB名、テーブル名、追加するtable(dataframe)、主キーとなるtable(dataframe)
-#Output：なし
-#以下のルールで追加列の型付けを行う。
-#  bool -> smallint: 0 or 1
-#  object -> varchar[Max値]
-#  intを含む -> int8
-#  float -> float8
-def addColumns(dbname, tableName, addDf, pkeyDf):
+
     
