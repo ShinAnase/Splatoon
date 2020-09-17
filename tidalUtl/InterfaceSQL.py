@@ -116,7 +116,16 @@ def updateFeatures(dbname, tableName, updDf, pkeyDf):
                 #updateするクエリ
                 updQrySnpt = ""
                 for clmnNm in updDf:
-                    updQrySnpt = updQrySnpt + clmnNm + "='" + str(updDf[clmnNm][recNum]) +"', "
+                    #bool値だった場合の値変更(True -> TRUE)
+                    if "int" in str(type(updDf[clmnNm][recNum])):
+                        updVal = str(updDf[clmnNm][recNum])
+                    elif updDf[clmnNm][recNum] == True:
+                        updVal = "TRUE"
+                    elif updDf[clmnNm][recNum] == False:
+                        updVal = "FALSE"
+                    else:
+                        updVal = str(updDf[clmnNm][recNum])
+                    updQrySnpt = updQrySnpt + clmnNm + "='" + updVal +"', "
                 updQrySnpt = updQrySnpt[:-2] + " "
                 #条件クエリ
                 whrQrySnpt = "where "
@@ -132,5 +141,49 @@ def updateFeatures(dbname, tableName, updDf, pkeyDf):
 
 
 
-
+#指定列のUpdate
+#Input：DB名、テーブル名、追加するtable(dataframe)、主キーとなるtable(dataframe)
+#Output：なし
+#以下のルールで追加列の型付けを行う。
+#  bool -> bool
+#  object -> varchar[Max値]　※日付もobjectなので、これらも全て文字列として取り込まれる
+#  intを含む -> int4
+#  float -> float8
+def addColumns(dbname, tableName, addDf, pkeyDf):
+    #[指定列の定義部]
+    #queryの枕詞
+    iniQrySnpt = "ALTER TABLE " + tableName + " "
+    #query(column名, 型名)
+    postQrySnpt = ""
+    for clmnNm in addDf:
+        dtypeNm = str(addDf.dtypes[clmnNm])
+        #pythonの型名をpostgreSQLの型名に落とし込む。
+        if dtypeNm == "bool":
+            dtypeNm = "bool"
+        elif dtypeNm == "object":
+            #print(addDf[clmnNm])
+            maxStrLen = addDf[clmnNm].astype(str).str.len().max() #文字列の最大値
+            dtypeNm = "varchar(" + str(maxStrLen) + ")"
+        elif "int" in dtypeNm:
+            dtypeNm = "int4"
+        elif "float" in dtypeNm:
+            dtypeNm = "float8"
+        else:
+            print("beyond expectations about dtypes: " + dtypeNm)
+            print("END.(NOT COMMIT.)")
+            return
+        #queryの追加
+        postQrySnpt = postQrySnpt + "ADD " + clmnNm + " " + dtypeNm + ", "
+    
+    postQrySnpt = postQrySnpt[:-2] + ";"
+    
+    #return iniQrySnpt + postQrySnpt
+        
+    #指定列のadd実行
+    with psycopg2.connect("host=localhost port=5432 dbname=" + dbname + " user=tidal password=tidalryoku") as conn:
+        with conn.cursor() as cur:
+            cur.execute(iniQrySnpt + postQrySnpt)
+    
+    #値の格納
+    updateFeatures(dbname, tableName, addDf, pkeyDf)
     
